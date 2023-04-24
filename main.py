@@ -1,22 +1,32 @@
+import sys
 import requests
 from bs4 import BeautifulSoup
 import re
 import pandas as pd
 
+# if you put url in CMD, then it will use that name, or customize it yourself in the script
+url_from_cmd = sys.argv[1]
+url = ""
+if url_from_cmd:
+    # url from CMD arguments
+    url = url_from_cmd
+else:
+    # hard-coded url
+    url = "https://www.vlr.gg/event/stats/1191/champions-tour-2023-pacific-league" #put your custom URL here
+
 # Send a GET request to the website and parse the HTML content
-# put ur vlr.gg tournament URL here
-url = 'https://www.vlr.gg/event/stats/1191/champions-tour-2023-pacific-league'
 response = requests.get(url)
 soup = BeautifulSoup(response.text, 'html.parser')
 
 # Find the table on the page and extract its headers and rows
 table = soup.find('table')
-headers = [header.text.strip() for header in table.find_all('th')]
-headers.insert(2,'Team') #add Team to column
+table_headers = [header.text.strip() for header in table.find_all('th')]
+table_headers.insert(2, 'Team')  # add Team to column header
 
-rows = []
+table_rows = [] #data_row
 for row in table.find_all('tr')[1:]:
-    data_row = []
+    current_player_row = []
+
     cells = row.find_all('td')
 
     # get Player's name and team
@@ -30,33 +40,38 @@ for row in table.find_all('tr')[1:]:
         agent_name = re.search(r"/([\w-]+)\.png$", agent["src"]).group(1)
         agent_played.append(agent_name)
 
+    # get Player's number of played rounds
     playedRound = cells[2].get_text()
 
-    data_row.append(player_name)
-    data_row.append(player_team)
-    data_row.append(agent_played)
-    data_row.append(playedRound)
+    current_player_row.append(player_name)
+    current_player_row.append(player_team)
+    current_player_row.append(agent_played)
+    current_player_row.append(playedRound)
 
     # get "Middle" Stats
     for cell in cells[3:14]:
         span = cell.find('span')
         if span is not None:
             stat = span.get_text().strip()
-            data_row.append(stat)
+            current_player_row.append(stat)
 
     # get "Ending" stats
     for cell in cells[14:]:
         stat = cell.get_text().strip()
-        data_row.append(stat)
+        current_player_row.append(stat)
 
-    rows.append(data_row)
+    # append current player's stats to the rows
+    table_rows.append(current_player_row)
 
-print(len(rows))
-print(len(headers))
+
 # # Store the data in a pandas DataFrame and save it to a CSV file
-df = pd.DataFrame(data=rows, columns=headers)
-# print(df)
-# # print(df)
-df.to_markdown()
-df.to_json()
-df.to_csv('./data/vlr_stats.csv', index=False)
+df = pd.DataFrame(data=table_rows, columns=table_headers)
+
+# if you put filename in CMD, then it will use that name, default = vlr_data
+csv_name = sys.argv[2]
+if csv_name:
+    df.to_csv('./data/' + csv_name + '.csv', index=False)
+else:
+    df.to_csv('./data/vlr_data.csv', index=False)
+
+print("DONE")

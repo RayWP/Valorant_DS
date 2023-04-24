@@ -4,6 +4,7 @@ import re
 import pandas as pd
 
 # Send a GET request to the website and parse the HTML content
+# put ur vlr.gg tournament URL here
 url = 'https://www.vlr.gg/event/stats/1191/champions-tour-2023-pacific-league'
 response = requests.get(url)
 soup = BeautifulSoup(response.text, 'html.parser')

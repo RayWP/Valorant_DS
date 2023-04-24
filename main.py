@@ -21,7 +21,7 @@ soup = BeautifulSoup(response.text, 'html.parser')
 # Find the table on the page and extract its headers and rows
 table = soup.find('table')
 table_headers = [header.text.strip() for header in table.find_all('th')]
-table_headers.insert(2, 'Team')  # add Team to column header
+table_headers.insert(1, 'Team')  # add Team to column header
 
 table_rows = [] #data_row
 for row in table.find_all('tr')[1:]:

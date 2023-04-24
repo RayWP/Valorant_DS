@@ -52,7 +52,7 @@ for row in table.find_all('tr')[1:]:
     for cell in cells[3:14]:
         span = cell.find('span')
         if span is not None:
-            stat = span.get_text().strip()
+            stat = span.get_text().strip().replace('%','')
             current_player_row.append(stat)
 
     # get "Ending" stats
